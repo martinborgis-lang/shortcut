@@ -1,0 +1,164 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: shortcut_postgres
+    environment:
+      POSTGRES_DB: shortcut
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d shortcut"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shortcut_network
+
+  # Redis Cache & Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: shortcut_redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - shortcut_network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: shortcut_api
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/shortcut
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=true
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/api:/app
+      - ./apps/api/uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - shortcut_network
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile.dev
+    container_name: shortcut_web
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - shortcut_network
+
+  # Celery Worker for Video Processing
+  celery_worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: shortcut_celery_worker
+    command: celery -A src.workers.celery_app worker --loglevel=info --queues=video_processing,publishing,default
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/shortcut
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=true
+    volumes:
+      - ./apps/api:/app
+      - ./apps/api/uploads:/app/uploads
+      - ./apps/api/temp:/app/temp
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - shortcut_network
+
+  # Celery Beat Scheduler
+  celery_beat:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: shortcut_celery_beat
+    command: celery -A src.workers.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/shortcut
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=true
+    volumes:
+      - ./apps/api:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - shortcut_network
+
+  # Flower - Celery Monitoring (Optional)
+  flower:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: shortcut_flower
+    command: celery -A src.workers.celery_app flower --port=5555
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/shortcut
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - shortcut_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  shortcut_network:
+    driver: bridge

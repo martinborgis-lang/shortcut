@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://shortcut.app/sitemap.xml
+
+# Disallow certain paths
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /private/
+
+# Allow specific pages
+Allow: /
+Allow: /pricing
+Allow: /privacy
+Allow: /terms
+Allow: /sign-up
+Allow: /sign-in

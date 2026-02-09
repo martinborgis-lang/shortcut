@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#581c87;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="text-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg-gradient)"/>
+
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#1e293b" stroke-width="1" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)" />
+
+  <!-- Logo -->
+  <g transform="translate(100, 150)">
+    <circle cx="40" cy="40" r="35" fill="url(#text-gradient)"/>
+    <path d="M25 20 L55 40 L45 40 L55 60 L25 40 L35 40 Z" fill="white"/>
+  </g>
+
+  <!-- Main heading -->
+  <text x="200" y="200" font-family="Inter, sans-serif" font-size="64" font-weight="bold" fill="white">
+    ShortCut
+  </text>
+
+  <!-- Subheading -->
+  <text x="200" y="260" font-family="Inter, sans-serif" font-size="42" font-weight="bold" fill="url(#text-gradient)">
+    Turn Long Videos into
+  </text>
+  <text x="200" y="320" font-family="Inter, sans-serif" font-size="42" font-weight="bold" fill="url(#text-gradient)">
+    Viral TikTok Shorts
+  </text>
+
+  <!-- Description -->
+  <text x="200" y="380" font-family="Inter, sans-serif" font-size="24" fill="#94a3b8">
+    AI-powered video clipping that creates viral content
+  </text>
+  <text x="200" y="420" font-family="Inter, sans-serif" font-size="24" fill="#94a3b8">
+    with smart timing and professional subtitles.
+  </text>
+
+  <!-- Stats -->
+  <g transform="translate(200, 480)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="32" font-weight="bold" fill="white">10K+</text>
+    <text x="0" y="35" font-family="Inter, sans-serif" font-size="16" fill="#94a3b8">Creators</text>
+
+    <text x="150" y="0" font-family="Inter, sans-serif" font-size="32" font-weight="bold" fill="white">50M+</text>
+    <text x="150" y="35" font-family="Inter, sans-serif" font-size="16" fill="#94a3b8">Views Generated</text>
+
+    <text x="350" y="0" font-family="Inter, sans-serif" font-size="32" font-weight="bold" fill="white">2M+</text>
+    <text x="350" y="35" font-family="Inter, sans-serif" font-size="16" fill="#94a3b8">Clips Created</text>
+  </g>
+
+  <!-- Floating elements -->
+  <circle cx="950" cy="100" r="8" fill="#ec4899" opacity="0.6"/>
+  <circle cx="1050" cy="200" r="12" fill="#dc2626" opacity="0.4"/>
+  <circle cx="900" cy="500" r="6" fill="#8b5cf6" opacity="0.5"/>
+  <circle cx="1100" cy="400" r="10" fill="#06b6d4" opacity="0.3"/>
+</svg>
