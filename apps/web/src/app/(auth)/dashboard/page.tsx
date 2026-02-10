@@ -14,10 +14,16 @@ export default function DashboardPage() {
   const { user, usage } = useUserStore()
   const { setNewProjectModalOpen } = useUIStore()
 
-  // Fetch data
+  // ✅ Fetch ALL data hooks BEFORE any conditional returns
   const { data: userFromAPI, isLoading: isUserLoading } = useUser()
   const { data: stats, isLoading: isStatsLoading } = useDashboardStats()
   const { data: projects = [], isLoading: isProjectsLoading } = useProjects()
+  const { data: clipsData, isLoading: isClipsLoading } = useClips({
+    page: 1,
+    size: 5,
+    sortBy: 'created_at',
+    sortOrder: 'desc'
+  })
 
   const isLoading = isUserLoading || isStatsLoading
 
@@ -31,14 +37,6 @@ export default function DashboardPage() {
     : stats?.monthly_minutes_used && stats?.monthly_minutes_limit
       ? Math.round((stats.monthly_minutes_used / stats.monthly_minutes_limit) * 100)
       : 0
-
-  // Fetch recent clips data using useClips hook
-  const { data: clipsData, isLoading: isClipsLoading } = useClips({
-    page: 1,
-    size: 5,
-    sortBy: 'created_at',
-    sortOrder: 'desc'
-  })
 
   const recentClips = clipsData?.clips || []
 
