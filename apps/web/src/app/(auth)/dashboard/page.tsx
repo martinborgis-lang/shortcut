@@ -7,7 +7,7 @@ import { RecentClips } from '@/components/dashboard/recent-clips'
 import { DashboardSkeleton } from '@/components/shared/loading-skeleton'
 import { Button } from '@/components/ui/button'
 import { useUserStore, useUIStore } from '@/stores'
-import { useUser, useDashboardStats, useProjects } from '@/hooks'
+import { useUser, useDashboardStats, useProjects, useClips } from '@/hooks'
 import { Progress } from '@/components/ui/progress'
 
 export default function DashboardPage() {
@@ -28,10 +28,19 @@ export default function DashboardPage() {
   // Calculate usage percentage
   const usagePercentage = usage
     ? Math.round((usage.monthly_minutes_used / usage.monthly_minutes_limit) * 100)
-    : 0
+    : stats?.monthly_minutes_used && stats?.monthly_minutes_limit
+      ? Math.round((stats.monthly_minutes_used / stats.monthly_minutes_limit) * 100)
+      : 0
 
-  // Mock recent clips data (would come from API)
-  const recentClips: any[] = []
+  // Fetch recent clips data using useClips hook
+  const { data: clipsData, isLoading: isClipsLoading } = useClips({
+    page: 1,
+    size: 5,
+    sortBy: 'created_at',
+    sortOrder: 'desc'
+  })
+
+  const recentClips = clipsData?.clips || []
 
   return (
     <div className="space-y-6">
@@ -54,15 +63,15 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Projects"
-          value={stats?.totalProjects || projects.length}
+          value={stats?.total_projects || projects.length}
           subtitle="All time"
           icon={<VideoIcon className="w-6 h-6" />}
         />
 
         <StatsCard
           title="Clips Generated"
-          value={stats?.totalClips || 0}
-          subtitle="This month"
+          value={stats?.total_clips || 0}
+          subtitle="All time"
           icon={<Play className="w-6 h-6" />}
         />
 
@@ -78,14 +87,10 @@ export default function DashboardPage() {
         />
 
         <StatsCard
-          title="Avg. Viral Score"
-          value="78%"
-          subtitle="+12% from last month"
+          title="Processing Projects"
+          value={stats?.processing_projects || 0}
+          subtitle="Currently running"
           icon={<TrendingUp className="w-6 h-6" />}
-          trend={{
-            value: 12,
-            isPositive: true
-          }}
         />
       </div>
 
@@ -114,7 +119,7 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <div className="grid gap-6 lg:grid-cols-2">
         <RecentProjects projects={projects} isLoading={isProjectsLoading} />
-        <RecentClips clips={recentClips} isLoading={false} />
+        <RecentClips clips={recentClips} isLoading={isClipsLoading} />
       </div>
     </div>
   )

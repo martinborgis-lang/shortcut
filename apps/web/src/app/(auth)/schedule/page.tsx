@@ -43,7 +43,7 @@ export default function SchedulePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-400">Total Posts</p>
-                <p className="text-2xl font-bold text-white">12</p>
+                <p className="text-2xl font-bold text-white">0</p>
               </div>
               <Calendar className="w-8 h-8 text-[#E94560]" />
             </div>
@@ -55,7 +55,7 @@ export default function SchedulePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-400">Scheduled</p>
-                <p className="text-2xl font-bold text-blue-400">8</p>
+                <p className="text-2xl font-bold text-blue-400">0</p>
               </div>
               <Clock className="w-8 h-8 text-blue-400" />
             </div>
@@ -67,7 +67,7 @@ export default function SchedulePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-400">Published</p>
-                <p className="text-2xl font-bold text-green-400">24</p>
+                <p className="text-2xl font-bold text-green-400">0</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-400" />
             </div>
@@ -79,7 +79,7 @@ export default function SchedulePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-400">Failed</p>
-                <p className="text-2xl font-bold text-red-400">1</p>
+                <p className="text-2xl font-bold text-red-400">0</p>
               </div>
               <AlertCircle className="w-8 h-8 text-red-400" />
             </div>

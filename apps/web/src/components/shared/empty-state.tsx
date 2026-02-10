@@ -14,7 +14,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed border-[#2A2A3E]">
+    <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed border-[#2A2A3E] bg-zinc-900/50 backdrop-blur-sm">
       <div className="mb-4 text-gray-400">
         {icon}
       </div>

@@ -21,7 +21,7 @@ const statusColors = {
 export function RecentClips({ clips, isLoading }: RecentClipsProps) {
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 bg-zinc-900/50 backdrop-blur-sm border border-white/10">
         <h3 className="text-lg font-semibold text-white mb-4">Recent Clips</h3>
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -42,7 +42,7 @@ export function RecentClips({ clips, isLoading }: RecentClipsProps) {
 
   if (clips.length === 0) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 bg-zinc-900/50 backdrop-blur-sm border border-white/10">
         <h3 className="text-lg font-semibold text-white mb-4">Recent Clips</h3>
         <div className="text-center py-8 text-gray-400">
           <Play className="w-12 h-12 mx-auto mb-2 opacity-50" />
