@@ -65,6 +65,10 @@ async def root():
 app.include_router(webhooks.router, prefix="/api/webhooks", tags=["webhooks"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 
+# Dashboard router for stats and analytics
+from .routers import dashboard
+app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
+
 # Video processing pipeline routers
 from .routers import projects, clips, websocket
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])

@@ -10,7 +10,6 @@ from pydantic import BaseModel
 from ..database import get_db
 from ..models.user import User, PlanType
 from ..middleware.auth import get_current_user
-from ..middleware.rate_limiting import check_rate_limit
 from ..utils.logging import safe_log_user_data
 
 logger = structlog.get_logger()
@@ -48,7 +47,7 @@ class UsageStats(BaseModel):
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(
-    current_user: User = Depends(check_rate_limit)
+    current_user: User = Depends(get_current_user)
 ) -> UserResponse:
     """
     Get current user information
@@ -84,7 +83,7 @@ async def get_current_user_info(
 
 @router.get("/me/usage", response_model=UsageStats)
 async def get_user_usage(
-    current_user: User = Depends(check_rate_limit)
+    current_user: User = Depends(get_current_user)
 ) -> UsageStats:
     """
     Get current user usage statistics
@@ -120,7 +119,7 @@ async def get_user_usage(
 
 @router.post("/me/reset-usage")
 async def reset_monthly_usage(
-    current_user: User = Depends(check_rate_limit),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """

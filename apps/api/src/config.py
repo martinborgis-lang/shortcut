@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     # Anthropic
     ANTHROPIC_API_KEY: Optional[str] = None
 
+    # Google Gemini
+    GOOGLE_API_KEY: Optional[str] = None
+
     # Clerk
     CLERK_SECRET_KEY: Optional[str] = None
     CLERK_WEBHOOK_SECRET: Optional[str] = None
@@ -62,6 +65,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Allow extra fields in env and ignore them
 
 
 settings = Settings()

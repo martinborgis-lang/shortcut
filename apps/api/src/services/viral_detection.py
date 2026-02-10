@@ -2,8 +2,7 @@ import os
 import json
 import structlog
 from typing import Dict, Any, List
-import httpx
-from anthropic import Anthropic
+import google.generativeai as genai
 
 from ..config import settings
 
@@ -12,15 +11,16 @@ logger = structlog.get_logger()
 
 class ViralDetectionService:
     """
-    Service for detecting viral moments using Claude Haiku.
+    Service for detecting viral moments using Google Gemini Flash.
 
-    Critères PRD F4-06: Envoie la transcription à Claude Haiku avec un prompt spécifique, parse la réponse JSON, retourne les segments avec scores
+    Critères PRD F4-06: Envoie la transcription à Gemini Flash avec un prompt spécifique, parse la réponse JSON, retourne les segments avec scores
     """
 
     def __init__(self):
-        self.client = None
-        if not self._is_mock_mode() and settings.ANTHROPIC_API_KEY:
-            self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        self.model = None
+        if not self._is_mock_mode() and settings.GOOGLE_API_KEY:
+            genai.configure(api_key=settings.GOOGLE_API_KEY)
+            self.model = genai.GenerativeModel('gemini-1.5-flash')
 
     def _is_mock_mode(self) -> bool:
         """Check if running in mock mode for development"""
@@ -33,7 +33,7 @@ class ViralDetectionService:
         max_clips: int = 5
     ) -> List[Dict[str, Any]]:
         """
-        Detect viral segments from transcript using Claude Haiku.
+        Detect viral segments from transcript using Google Gemini Flash.
 
         Args:
             transcript: Deepgram transcript with word-level timestamps
@@ -54,17 +54,17 @@ class ViralDetectionService:
             return self._mock_detect_viral_segments(max_clips)
 
         try:
-            # Prepare transcript for Claude
+            # Prepare transcript for Gemini
             transcript_text = self._format_transcript_for_ai(transcript)
 
             # Generate prompt
             prompt = self._build_viral_detection_prompt(transcript_text, duration, max_clips)
 
-            # Send to Claude Haiku
-            response = self._send_to_claude(prompt)
+            # Send to Gemini Flash
+            response = self._send_to_gemini(prompt)
 
             # Parse and validate response
-            segments = self._parse_claude_response(response, duration)
+            segments = self._parse_gemini_response(response, duration)
 
             # Filter and sort by virality score
             segments = self._filter_and_rank_segments(segments, max_clips)
@@ -82,7 +82,7 @@ class ViralDetectionService:
             raise Exception(f"Viral detection error: {str(e)}")
 
     def _format_transcript_for_ai(self, transcript: Dict[str, Any]) -> str:
-        """Format Deepgram transcript for Claude analysis"""
+        """Format Deepgram transcript for Gemini analysis"""
         try:
             results = transcript.get("results", {})
             channels = results.get("channels", [])
@@ -175,38 +175,34 @@ Critères de viralité (par ordre d'importance) :
 IMPORTANT : Les segments ne doivent PAS se chevaucher. Chaque segment doit être auto-suffisant (compréhensible sans contexte).
 Retourne UNIQUEMENT le JSON, aucun texte avant ou après."""
 
-    def _send_to_claude(self, prompt: str) -> str:
-        """Send prompt to Claude Haiku and get response"""
+    def _send_to_gemini(self, prompt: str) -> str:
+        """Send prompt to Gemini Flash and get response"""
         try:
-            response = self.client.messages.create(
-                model="claude-3-haiku-20240307",  # Haiku model as specified in PRD
-                max_tokens=4000,
-                temperature=0.3,  # Lower temperature for more consistent JSON output
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    max_output_tokens=4000,
+                    temperature=0.3,  # Lower temperature for more consistent JSON output
+                )
             )
 
-            response_text = response.content[0].text.strip()
+            response_text = response.text.strip()
             logger.info(
-                "Claude response received",
+                "Gemini response received",
                 response_length=len(response_text),
-                model=response.model
+                model="gemini-1.5-flash"
             )
 
             return response_text
 
         except Exception as e:
-            logger.error("Claude API error", error=str(e))
-            raise Exception(f"Claude API error: {str(e)}")
+            logger.error("Gemini API error", error=str(e))
+            raise Exception(f"Gemini API error: {str(e)}")
 
-    def _parse_claude_response(self, response: str, duration: float) -> List[Dict[str, Any]]:
-        """Parse and validate Claude's JSON response"""
+    def _parse_gemini_response(self, response: str, duration: float) -> List[Dict[str, Any]]:
+        """Parse and validate Gemini's JSON response"""
         try:
-            # Extract JSON from response (in case Claude adds extra text)
+            # Extract JSON from response (in case Gemini adds extra text)
             response = response.strip()
 
             # Find JSON array in response
@@ -214,7 +210,7 @@ Retourne UNIQUEMENT le JSON, aucun texte avant ou après."""
             end_idx = response.rfind(']')
 
             if start_idx == -1 or end_idx == -1:
-                raise ValueError("No JSON array found in Claude response")
+                raise ValueError("No JSON array found in Gemini response")
 
             json_text = response[start_idx:end_idx + 1]
             segments = json.loads(json_text)
@@ -268,17 +264,17 @@ Retourne UNIQUEMENT le JSON, aucun texte avant ou après."""
                     continue
 
             if not validated_segments:
-                raise ValueError("No valid segments found in Claude response")
+                raise ValueError("No valid segments found in Gemini response")
 
-            logger.info("Claude response parsed", segments_found=len(validated_segments))
+            logger.info("Gemini response parsed", segments_found=len(validated_segments))
             return validated_segments
 
         except json.JSONDecodeError as e:
-            logger.error("Failed to parse Claude JSON response", error=str(e), response=response[:500])
-            raise ValueError(f"Invalid JSON in Claude response: {str(e)}")
+            logger.error("Failed to parse Gemini JSON response", error=str(e), response=response[:500])
+            raise ValueError(f"Invalid JSON in Gemini response: {str(e)}")
         except Exception as e:
-            logger.error("Failed to parse Claude response", error=str(e))
-            raise ValueError(f"Failed to parse Claude response: {str(e)}")
+            logger.error("Failed to parse Gemini response", error=str(e))
+            raise ValueError(f"Failed to parse Gemini response: {str(e)}")
 
     def _filter_and_rank_segments(self, segments: List[Dict[str, Any]], max_clips: int) -> List[Dict[str, Any]]:
         """Filter overlapping segments and rank by virality score"""

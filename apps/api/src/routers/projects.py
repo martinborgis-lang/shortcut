@@ -21,9 +21,8 @@ from ..schemas.projects import (
 )
 from ..schemas.clips import BulkDownloadResponse
 from ..middleware.auth import get_current_user
-from ..middleware.rate_limiting import check_rate_limit
-from ..workers.celery_app import celery_app
 from ..services.url_validator import validate_video_url
+from ..services.pipeline_orchestrator import PipelineOrchestratorService
 from ..utils.s3 import get_s3_service
 
 logger = structlog.get_logger()
@@ -34,18 +33,18 @@ router = APIRouter()
 @router.post(
     "/",
     response_model=CreateProjectResponse,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(check_rate_limit)]
+    status_code=status.HTTP_201_CREATED
 )
 async def create_project(
     request: CreateProjectRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Create a new project from a video URL.
 
-    Critères PRD F4-01 & F4-14: Accepte { url: string }, valide l'URL robustement, crée le projet en DB, enqueue le job Celery
+    Critères PRD F4-01 & F4-14: Accepte { url: string }, valide l'URL robustement, crée le projet en DB, lance le pipeline en BackgroundTask
     """
     logger.info("Creating new project", url=request.url, user_id=str(current_user.id))
 
@@ -92,17 +91,16 @@ async def create_project(
         db.commit()
         db.refresh(project)
 
-        # Enqueue Celery job for video processing
-        task = celery_app.send_task(
-            'video_pipeline.process_video',
-            args=[str(project.id)],
-            queue='video_processing'
+        # Start pipeline processing in background
+        pipeline_orchestrator = PipelineOrchestratorService()
+        background_tasks.add_task(
+            pipeline_orchestrator.process_project,
+            str(project.id)
         )
 
         logger.info(
-            "Project created and job enqueued",
+            "Project created and pipeline started",
             project_id=str(project.id),
-            task_id=task.id,
             platform=url_validation['platform'],
             video_id=url_validation['video_id']
         )
@@ -129,7 +127,6 @@ async def create_project(
 @router.get(
     "/{project_id}",
     response_model=ProjectResponse,
-    dependencies=[Depends(check_rate_limit)]
 )
 async def get_project(
     project_id: uuid.UUID,
@@ -160,7 +157,6 @@ async def get_project(
 @router.get(
     "/{project_id}/status",
     response_model=ProjectStatusResponse,
-    dependencies=[Depends(check_rate_limit)]
 )
 async def get_project_status(
     project_id: uuid.UUID,
@@ -201,7 +197,7 @@ async def get_project_status(
     elif project.status == "analyzing":
         step_details = {
             "message": "Analyzing content for viral moments",
-            "current_operation": "AI analysis with Claude Haiku"
+            "current_operation": "AI analysis with Gemini Flash"
         }
     elif project.status == "processing":
         clips_count = db.query(Clip).filter(Clip.project_id == project_id).count()
@@ -235,7 +231,6 @@ async def get_project_status(
 @router.get(
     "/",
     response_model=List[ProjectResponse],
-    dependencies=[Depends(check_rate_limit)]
 )
 async def list_projects(
     current_user: User = Depends(get_current_user),
@@ -258,7 +253,6 @@ async def list_projects(
 @router.delete(
     "/{project_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(check_rate_limit)]
 )
 async def delete_project(
     project_id: uuid.UUID,

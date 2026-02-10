@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 
 from ..database import get_db
 from ..middleware.auth import get_current_user
-from ..middleware.rate_limiting import check_rate_limit
 from ..models.clip import Clip
 from ..models.user import User
 from ..schemas.clips import (

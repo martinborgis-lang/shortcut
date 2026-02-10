@@ -18,9 +18,12 @@ Usage:
 """
 
 import os
+import sys
 import asyncio
 import structlog
+import uuid
 from datetime import datetime
+from pathlib import Path
 
 # Set environment for testing
 os.environ["MOCK_MODE"] = "true"  # Change to "false" for real testing
@@ -30,6 +33,10 @@ from src.services.transcription import TranscriptionService
 from src.services.viral_detection import ViralDetectionService
 from src.services.video_processor import VideoProcessorService
 from src.services.subtitle_generator import SubtitleGeneratorService
+from src.services.pipeline_orchestrator import PipelineOrchestratorService
+from src.database import SessionLocal
+from src.models.project import Project
+from src.models.user import User
 
 # Configure logging for testing
 structlog.configure(
@@ -172,18 +179,134 @@ async def test_individual_services():
     logger.info("Available subtitle styles", styles=list(styles.keys()))
 
 
+async def test_pipeline_orchestrator():
+    """Test the complete pipeline using the orchestrator"""
+    logger.info("Starting pipeline orchestrator test")
+
+    # Create database session
+    db = SessionLocal()
+
+    try:
+        # Create test user
+        test_user = User(
+            id=uuid.uuid4(),
+            clerk_id="test_user_123",
+            email="test@example.com",
+            first_name="Test",
+            last_name="User",
+            plan="FREE"
+        )
+        db.add(test_user)
+        db.commit()
+        db.refresh(test_user)
+        logger.info("Created test user", user_id=str(test_user.id))
+
+        # Create test project
+        test_project = Project(
+            id=uuid.uuid4(),
+            user_id=test_user.id,
+            source_url="https://www.youtube.com/watch?v=test123",
+            max_clips_requested=3,
+            status="pending",
+            processing_progress=0,
+            video_metadata={
+                "platform": "youtube",
+                "video_id": "test123",
+                "original_url": "https://www.youtube.com/watch?v=test123"
+            }
+        )
+        db.add(test_project)
+        db.commit()
+        db.refresh(test_project)
+        logger.info("Created test project", project_id=str(test_project.id))
+
+        # Test pipeline orchestrator
+        orchestrator = PipelineOrchestratorService()
+        start_time = datetime.now()
+
+        try:
+            await orchestrator.process_project(str(test_project.id))
+            duration = (datetime.now() - start_time).total_seconds()
+
+            # Refresh project to get results
+            db.refresh(test_project)
+
+            logger.info("Pipeline orchestrator test completed",
+                       status=test_project.status,
+                       progress=test_project.processing_progress,
+                       duration=duration,
+                       clips_count=len(test_project.clips) if test_project.clips else 0)
+
+            print(f"\n[RESULTS] PIPELINE ORCHESTRATOR TEST RESULTS:")
+            print(f"   Status: {test_project.status}")
+            print(f"   Progress: {test_project.processing_progress}%")
+            print(f"   Duration: {duration:.2f}s")
+            print(f"   Clips: {len(test_project.clips) if test_project.clips else 0}")
+
+            if test_project.viral_segments:
+                print(f"   Viral segments: {len(test_project.viral_segments)}")
+
+            return test_project.status == "completed"
+
+        except Exception as e:
+            logger.error("Pipeline orchestrator failed", error=str(e))
+            print(f"\n[ERROR] PIPELINE ORCHESTRATOR FAILED: {str(e)}")
+            return False
+
+    finally:
+        # Cleanup
+        try:
+            db.delete(test_project)
+            db.delete(test_user)
+            db.commit()
+            logger.info("Cleaned up test data")
+        except:
+            pass
+        db.close()
+
+
 if __name__ == "__main__":
-    print("Testing Video Processing Pipeline")
+    print("ShortCut Video Processing Pipeline - Complete Test Suite")
     print(f"Mock Mode: {os.getenv('MOCK_MODE', 'false')}")
-    print("=" * 50)
+    print("=" * 60)
 
-    # Test individual services first
-    asyncio.run(test_individual_services())
+    success = True
 
-    print("\n" + "=" * 50)
-    print("Testing complete pipeline")
+    # Test 1: Individual services
+    print("\n[1] Testing Individual Services...")
+    try:
+        asyncio.run(test_individual_services())
+        print("[PASS] Individual services test PASSED")
+    except Exception as e:
+        print(f"[FAIL] Individual services test FAILED: {str(e)}")
+        success = False
 
-    # Test complete pipeline
-    asyncio.run(test_video_pipeline())
+    # Test 2: Legacy pipeline (services chained)
+    print("\n[2] Testing Legacy Pipeline (Service Chain)...")
+    try:
+        asyncio.run(test_video_pipeline())
+        print("[PASS] Legacy pipeline test PASSED")
+    except Exception as e:
+        print(f"[FAIL] Legacy pipeline test FAILED: {str(e)}")
+        success = False
 
-    print("All tests completed!")
+    # Test 3: NEW Pipeline orchestrator
+    print("\n[3] Testing NEW Pipeline Orchestrator...")
+    try:
+        orchestrator_success = asyncio.run(test_pipeline_orchestrator())
+        if orchestrator_success:
+            print("[PASS] Pipeline orchestrator test PASSED")
+        else:
+            print("[FAIL] Pipeline orchestrator test FAILED")
+            success = False
+    except Exception as e:
+        print(f"[FAIL] Pipeline orchestrator test ERROR: {str(e)}")
+        success = False
+
+    print("\n" + "=" * 60)
+    if success:
+        print("SUCCESS: ALL TESTS PASSED! The complete pipeline is ready for production.")
+        sys.exit(0)
+    else:
+        print("ERROR: SOME TESTS FAILED! Check the errors above.")
+        sys.exit(1)

@@ -114,15 +114,53 @@ class ClerkJWTBearer(HTTPBearer):
                 db: Session = next(db_generator)
 
                 try:
-                    # Find user in database
+                    # Find user in database or create new one
                     user = db.query(User).filter(User.clerk_id == clerk_id).first()
                     if not user:
+                        # Auto-create user on first login
                         log_data = safe_log_user_data("unknown", clerk_id=clerk_id)
-                        logger.warning("User not found in database", **log_data)
-                        raise HTTPException(
-                            status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="User not found"
+                        logger.info("Creating new user on first login", **log_data)
+
+                        # Extract user info from JWT payload
+                        email = payload.get("email", "")
+                        name = payload.get("name", "")
+                        first_name = payload.get("first_name", "")
+                        last_name = payload.get("last_name", "")
+                        profile_image = payload.get("image_url", "")
+
+                        # Create new user with default FREE plan
+                        from ..models.user import PlanType
+                        user = User(
+                            clerk_id=clerk_id,
+                            email=email,
+                            first_name=first_name or "Utilisateur",
+                            last_name=last_name,
+                            profile_image_url=profile_image,
+                            plan=PlanType.FREE,
+                            monthly_minutes_used=0,
+                            is_premium=False,
+                            clips_generated=0,
+                            clips_limit=10,  # FREE plan limit
+                            monthly_clips_generated=0,
+                            created_at=datetime.now(timezone.utc),
+                            last_login=datetime.now(timezone.utc)
                         )
+
+                        try:
+                            db.add(user)
+                            db.commit()
+                            db.refresh(user)
+
+                            log_data = safe_log_user_data(str(user.id), clerk_id=clerk_id, email=user.email)
+                            logger.info("New user created successfully", **log_data)
+
+                        except Exception as e:
+                            logger.error("Failed to create new user", error=str(e), clerk_id=clerk_id)
+                            db.rollback()
+                            raise HTTPException(
+                                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="Failed to create user account"
+                            )
 
                     # Update last login
                     user.last_login = datetime.now(timezone.utc)
