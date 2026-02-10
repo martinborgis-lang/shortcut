@@ -16,8 +16,9 @@ from ..schemas.stripe import (
 
 logger = structlog.get_logger()
 
-# Configure Stripe
-stripe.api_key = settings.STRIPE_SECRET_KEY
+# Configure Stripe (only if key is available)
+if settings.STRIPE_SECRET_KEY:
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # Plan to Price ID mapping
 PLAN_PRICE_IDS = {

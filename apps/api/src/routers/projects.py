@@ -21,7 +21,7 @@ from ..schemas.projects import (
 )
 from ..schemas.clips import BulkDownloadResponse
 from ..middleware.auth import get_current_user
-from ..middleware.rate_limiting import rate_limit
+from ..middleware.rate_limiting import check_rate_limit
 from ..workers.celery_app import celery_app
 from ..services.url_validator import validate_video_url
 from ..utils.s3 import get_s3_service
@@ -35,7 +35,7 @@ router = APIRouter()
     "/",
     response_model=CreateProjectResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(rate_limit(max_requests=10, window_minutes=60))]
+    dependencies=[Depends(check_rate_limit)]
 )
 async def create_project(
     request: CreateProjectRequest,
@@ -129,7 +129,7 @@ async def create_project(
 @router.get(
     "/{project_id}",
     response_model=ProjectResponse,
-    dependencies=[Depends(rate_limit(max_requests=30, window_minutes=60))]
+    dependencies=[Depends(check_rate_limit)]
 )
 async def get_project(
     project_id: uuid.UUID,
@@ -160,7 +160,7 @@ async def get_project(
 @router.get(
     "/{project_id}/status",
     response_model=ProjectStatusResponse,
-    dependencies=[Depends(rate_limit(max_requests=60, window_minutes=60))]
+    dependencies=[Depends(check_rate_limit)]
 )
 async def get_project_status(
     project_id: uuid.UUID,
@@ -235,7 +235,7 @@ async def get_project_status(
 @router.get(
     "/",
     response_model=List[ProjectResponse],
-    dependencies=[Depends(rate_limit(max_requests=30, window_minutes=60))]
+    dependencies=[Depends(check_rate_limit)]
 )
 async def list_projects(
     current_user: User = Depends(get_current_user),
@@ -258,7 +258,7 @@ async def list_projects(
 @router.delete(
     "/{project_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(rate_limit(max_requests=10, window_minutes=60))]
+    dependencies=[Depends(check_rate_limit)]
 )
 async def delete_project(
     project_id: uuid.UUID,
@@ -289,7 +289,6 @@ async def delete_project(
 
 
 @router.get("/{project_id}/download-all", response_model=BulkDownloadResponse)
-@rate_limit("projects:download_all", requests=5, window=3600)
 async def download_all_project_clips(
     project_id: uuid.UUID,
     background_tasks: BackgroundTasks,

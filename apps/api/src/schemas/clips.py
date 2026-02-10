@@ -1,5 +1,5 @@
 from pydantic import BaseModel, validator
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, ClassVar
 from datetime import datetime
 import uuid
 
@@ -127,11 +127,11 @@ class ClipsListResponse(BaseModel):
 
 class ClipsSortBy(BaseModel):
     """Enum-like model for sorting options"""
-    VIRAL_SCORE = "viral_score"
-    CREATED_AT = "created_at"
-    DURATION = "duration"
-    TITLE = "title"
-    USER_RATING = "user_rating"
+    VIRAL_SCORE: ClassVar[str] = "viral_score"
+    CREATED_AT: ClassVar[str] = "created_at"
+    DURATION: ClassVar[str] = "duration"
+    TITLE: ClassVar[str] = "title"
+    USER_RATING: ClassVar[str] = "user_rating"
 
 
 class ClipsFilterRequest(BaseModel):

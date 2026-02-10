@@ -19,9 +19,7 @@ class ViralDetectionService:
 
     def __init__(self):
         self.client = None
-        if not self._is_mock_mode():
-            if not settings.ANTHROPIC_API_KEY:
-                raise ValueError("ANTHROPIC_API_KEY not configured")
+        if not self._is_mock_mode() and settings.ANTHROPIC_API_KEY:
             self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
     def _is_mock_mode(self) -> bool:

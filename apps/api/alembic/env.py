@@ -8,11 +8,16 @@ from sqlalchemy import pool
 from alembic import context
 
 # Add the src directory to the path so we can import our models
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
 
 # Import your SQLAlchemy models here
-from database import Base
-from models import user, project, clip, scheduled_post, social_account
+from src.database import Base
+from src.models import user, project, clip, scheduled_post, social_account
+from src.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -47,7 +52,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    # Use DATABASE_URL from environment instead of alembic.ini
+    url = settings.DATABASE_URL
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -66,8 +72,12 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # Configure engine to use our DATABASE_URL
+    configuration = config.get_section(config.config_ini_section)
+    configuration['sqlalchemy.url'] = settings.DATABASE_URL
+
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

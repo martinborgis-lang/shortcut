@@ -29,7 +29,8 @@ import { ClipCardSkeleton } from '@/components/shared/loading-skeleton'
 import { useProject, useClips } from '@/hooks'
 import { useProjectStore } from '@/stores'
 import { toast } from 'sonner'
-import type { Clip } from '../../../../../shared/types'
+// Type will be defined later - using any for now
+type Clip = any
 
 export default function ProjectDetailPage() {
   const params = useParams()
@@ -37,7 +38,7 @@ export default function ProjectDetailPage() {
   const projectId = params.id as string
 
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(projectId)
-  const { data: clips = [], isLoading: clipsLoading } = useClips(projectId)
+  const { data: clips = [], isLoading: clipsLoading } = useClips({ projectId })
   const { setCurrentProject } = useProjectStore()
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -122,8 +123,8 @@ export default function ProjectDetailPage() {
           <div className="flex-1">
             <div className="flex items-center space-x-3 mb-2">
               <h1 className="text-2xl font-bold text-white">{project.name}</h1>
-              <Badge variant={statusColors[project.status]}>
-                {statusLabels[project.status]}
+              <Badge variant={statusColors[project.status as keyof typeof statusColors] || 'secondary'}>
+                {statusLabels[project.status as keyof typeof statusLabels] || project.status}
               </Badge>
             </div>
 

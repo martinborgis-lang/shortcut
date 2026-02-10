@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 import jwt
 import requests
 import structlog
-from fastapi import HTTPException, Request, status
+from fastapi import HTTPException, Request, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
@@ -165,7 +165,7 @@ class ClerkJWTBearer(HTTPBearer):
 clerk_auth = ClerkJWTBearer()
 
 
-async def get_current_user(auth_data: Tuple[dict, User] = clerk_auth) -> User:
+async def get_current_user(auth_data: Tuple[dict, User] = Depends(clerk_auth)) -> User:
     """
     Dependency to get the current authenticated user
     Usage: user = Depends(get_current_user)
@@ -174,7 +174,7 @@ async def get_current_user(auth_data: Tuple[dict, User] = clerk_auth) -> User:
     return user
 
 
-async def get_current_user_payload(auth_data: Tuple[dict, User] = clerk_auth) -> Tuple[dict, User]:
+async def get_current_user_payload(auth_data: Tuple[dict, User] = Depends(clerk_auth)) -> Tuple[dict, User]:
     """
     Dependency to get both JWT payload and user
     Usage: payload, user = Depends(get_current_user_payload)

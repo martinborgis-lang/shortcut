@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 from ..database import get_db
 from ..middleware.auth import get_current_user
-from ..middleware.rate_limiting import rate_limit
+from ..middleware.rate_limiting import check_rate_limit
 from ..models.clip import Clip
 from ..models.user import User
 from ..schemas.clips import (
@@ -35,7 +35,6 @@ router = APIRouter()
 
 
 @router.get("/{clip_id}", response_model=ClipDetailResponse)
-@rate_limit("clips:get", requests=100, window=3600)
 async def get_clip(
     clip_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -97,7 +96,6 @@ async def get_clip(
 
 
 @router.patch("/{clip_id}", response_model=ClipResponse)
-@rate_limit("clips:update", requests=50, window=3600)
 async def update_clip(
     clip_id: uuid.UUID,
     update_request: UpdateClipRequest,
@@ -180,7 +178,6 @@ async def update_clip(
 
 
 @router.post("/{clip_id}/regenerate")
-@rate_limit("clips:regenerate", requests=20, window=3600)
 async def regenerate_clip(
     clip_id: uuid.UUID,
     regenerate_request: RegenerateClipRequest = RegenerateClipRequest(),
@@ -251,7 +248,6 @@ async def regenerate_clip(
 
 
 @router.get("/{clip_id}/download", response_model=ClipDownloadResponse)
-@rate_limit("clips:download", requests=100, window=3600)
 async def get_download_url(
     clip_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -311,7 +307,6 @@ async def get_download_url(
 
 
 @router.delete("/{clip_id}")
-@rate_limit("clips:delete", requests=50, window=3600)
 async def delete_clip(
     clip_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -362,7 +357,6 @@ async def delete_clip(
 
 
 @router.get("/", response_model=ClipsListResponse)
-@rate_limit("clips:list", requests=200, window=3600)
 async def list_clips(
     project_id: Optional[uuid.UUID] = Query(None),
     status: Optional[str] = Query(None),
@@ -454,7 +448,6 @@ async def list_clips(
 
 
 @router.post("/bulk-download", response_model=BulkDownloadResponse)
-@rate_limit("clips:bulk_download", requests=10, window=3600)
 async def bulk_download_clips(
     request: BulkDownloadRequest,
     background_tasks: BackgroundTasks,

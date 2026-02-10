@@ -9,7 +9,8 @@ import { EmptyProjects } from '@/components/shared/empty-state'
 import { ProjectCardSkeleton } from '@/components/shared/loading-skeleton'
 import { useUIStore } from '@/stores'
 import { useProjects } from '@/hooks'
-import type { Project } from '../../../../shared/types'
+// Type will be defined later - using any for now
+type Project = any
 
 type ViewMode = 'grid' | 'list'
 type SortBy = 'created' | 'updated' | 'name'

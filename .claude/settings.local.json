@@ -29,7 +29,22 @@
       "Bash(taskkill:*)",
       "Bash(npx create-next-app:*)",
       "Bash(/bashes)",
-      "Bash(chcp 65001)"
+      "Bash(chcp 65001)",
+      "Bash(cp:*)",
+      "Bash(find:*)",
+      "Bash(rmdir:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker ps:*)",
+      "Bash(venvScripts:*)",
+      "Bash(pip --version)",
+      "Bash(source:*)",
+      "Bash(alembic upgrade:*)",
+      "Bash(.venvScriptsactivate)",
+      "Bash(.venv/Scripts/activate)",
+      "Bash(powershell:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []

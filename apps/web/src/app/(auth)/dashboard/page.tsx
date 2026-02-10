@@ -31,7 +31,7 @@ export default function DashboardPage() {
     : 0
 
   // Mock recent clips data (would come from API)
-  const recentClips = []
+  const recentClips: any[] = []
 
   return (
     <div className="space-y-6">

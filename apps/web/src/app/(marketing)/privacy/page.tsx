@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
               <section className="space-y-4">
                 <h2 className="text-2xl font-semibold text-white">Introduction</h2>
                 <p>
-                  ShortCut ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered video clipping service.
+                  ShortCut (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our AI-powered video clipping service.
                 </p>
               </section>
 
@@ -128,7 +128,7 @@ export default function PrivacyPolicyPage() {
               <section className="space-y-4">
                 <h2 className="text-2xl font-semibold text-white">Changes to This Policy</h2>
                 <p>
-                  We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
+                  We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &ldquo;Last updated&rdquo; date.
                 </p>
               </section>
             </div>
