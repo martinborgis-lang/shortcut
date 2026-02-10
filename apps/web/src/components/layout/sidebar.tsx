@@ -52,15 +52,15 @@ export function Sidebar() {
 
   return (
     <div className={cn(
-      "flex h-screen flex-col bg-[#0F0F1A] border-r border-[#2A2A3E] transition-all duration-300",
+      "flex h-screen flex-col bg-zinc-950 border-r border-white/10 transition-all duration-300",
       "lg:relative lg:translate-x-0",
       sidebarCollapsed ? "w-16 lg:w-16" : "w-64 lg:w-64"
     )}>
       {/* Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-[#2A2A3E]">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-white/10">
         {!sidebarCollapsed && (
           <div className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#E94560] to-[#F27121]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-cyan-500">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <span className="text-lg font-bold text-white">Shortcut</span>
@@ -70,7 +70,7 @@ export function Sidebar() {
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="text-gray-400 hover:text-white hover:bg-[#2A2A3E]"
+          className="text-gray-400 hover:text-white hover:bg-white/5"
         >
           {sidebarCollapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -85,7 +85,7 @@ export function Sidebar() {
         <Button
           onClick={() => setNewProjectModalOpen(true)}
           className={cn(
-            "bg-[#E94560] hover:bg-[#E94560]/90 text-white font-medium",
+            "bg-gradient-to-r from-purple-600 to-cyan-500 hover:from-purple-700 hover:to-cyan-600 text-white font-medium",
             sidebarCollapsed ? "w-8 h-8 p-0" : "w-full"
           )}
         >
@@ -105,15 +105,15 @@ export function Sidebar() {
               className={cn(
                 "group flex items-center px-2 py-2 text-sm font-medium rounded-lg transition-colors",
                 isActive
-                  ? "bg-[#E94560]/10 text-[#E94560] border border-[#E94560]/20"
-                  : "text-gray-300 hover:bg-[#2A2A3E] hover:text-white",
+                  ? "bg-gradient-to-r from-purple-600/10 to-cyan-500/10 text-white border border-purple-500/20"
+                  : "text-gray-300 hover:bg-white/5 hover:text-white",
                 sidebarCollapsed && "justify-center"
               )}
             >
               <item.icon
                 className={cn(
                   "h-5 w-5",
-                  isActive ? "text-[#E94560]" : "text-gray-400 group-hover:text-white"
+                  isActive ? "text-purple-400" : "text-gray-400 group-hover:text-white"
                 )}
               />
               {!sidebarCollapsed && (
@@ -125,7 +125,7 @@ export function Sidebar() {
       </nav>
 
       {/* User Menu */}
-      <div className="border-t border-[#2A2A3E] p-4">
+      <div className="border-t border-white/10 p-4">
         {sidebarCollapsed ? (
           <div className="flex justify-center">
             <UserButton afterSignOutUrl="/" />

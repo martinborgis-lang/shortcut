@@ -1,6 +1,4 @@
 import { Metadata } from "next"
-import { MarketingNavbar } from "@/components/marketing/navbar"
-import { MarketingFooter } from "@/components/marketing/footer"
 import { ErrorBoundary } from "@/components/shared/error-boundary"
 
 export const metadata: Metadata = {
@@ -56,14 +54,12 @@ export default function MarketingLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-background">
-      <MarketingNavbar />
+    <div className="min-h-screen bg-zinc-950 text-white">
       <ErrorBoundary>
-        <main className="pt-16">
+        <main>
           {children}
         </main>
       </ErrorBoundary>
-      <MarketingFooter />
     </div>
   )
 }

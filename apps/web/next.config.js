@@ -1,8 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Disable optimizeCss for faster development
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: ['framer-motion', 'lucide-react'],
+  },
+  // Enable SWC for faster compilation
+  swcMinify: true,
+  // Optimize imports for large packages
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
   },
   images: {
     domains: ['localhost', 'shortcut-storage.s3.amazonaws.com'],
