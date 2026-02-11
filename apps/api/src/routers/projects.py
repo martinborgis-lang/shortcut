@@ -8,6 +8,11 @@ import tempfile
 import zipfile
 import os
 from datetime import datetime, timedelta
+import sys
+
+def log_to_file(msg):
+    with open("debug.log", "a") as f:
+        f.write(str(msg) + "\n")
 
 from ..database import get_db
 from ..models.project import Project
@@ -46,6 +51,7 @@ async def create_project(
 
     Critères PRD F4-01 & F4-14: Accepte { url: string }, valide l'URL robustement, crée le projet en DB, lance le pipeline en BackgroundTask
     """
+    log_to_file("=== POST /api/projects/ REACHED ===")
     logger.info("Creating new project", url=request.url, user_id=str(current_user.id))
 
     # Validate URL using robust service (PRD F4-14)
@@ -117,13 +123,10 @@ async def create_project(
 
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        error_msg = traceback.format_exc()
+        log_to_file(f"=== ERROR ===\n{error_msg}")
         db.rollback()
-        logger.error("Failed to create project", error=str(e), url=request.url, user_id=str(current_user.id))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create project: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed: {str(e)}")
 
 
 @router.get(

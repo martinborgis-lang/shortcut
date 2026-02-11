@@ -5,6 +5,12 @@ from typing import Optional, Tuple
 import jwt
 import requests
 import structlog
+
+def log_to_file(msg):
+    import os
+    log_path = os.path.join(os.getcwd(), "debug.log")
+    with open(log_path, "a") as f:
+        f.write(f"[{os.getcwd()}] {str(msg)}\n")
 from fastapi import HTTPException, Request, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -84,6 +90,12 @@ class ClerkJWTBearer(HTTPBearer):
             return payload
 
         except jwt.InvalidTokenError as e:
+            try:
+                with open("C:/Users/marti/shortcut/error_log.txt", "a") as f:
+                    f.write(f"JWT ERROR: {e}\n")
+            except:
+                pass
+            log_to_file(f"=== JWT INVALID TOKEN ERROR: {e} ===")
             logger.error("Invalid JWT token", error=str(e))
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -187,6 +199,7 @@ class ClerkJWTBearer(HTTPBearer):
                         pass  # Expected when generator is closed
 
             except Exception as e:
+                log_to_file(f"=== AUTH ERROR: {e} ===")
                 logger.error("Database session error during authentication", error=str(e))
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -255,6 +268,11 @@ async def get_current_user_from_token(token: str, db: Session) -> User:
     except HTTPException:
         raise
     except Exception as e:
+        try:
+            with open("C:/Users/marti/shortcut/error_log.txt", "a") as f:
+                f.write(f"TOKEN AUTH FAILED: {e}\n")
+        except:
+            pass
         logger.error("Token authentication failed", error=str(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
