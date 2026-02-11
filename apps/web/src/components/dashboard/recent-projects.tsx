@@ -1,29 +1,45 @@
-import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ExternalLink, Play, Clock } from 'lucide-react'
-import type { Project } from '../../../../shared/types'
+
+type Project = any
+
+function safeTimeAgo(dateValue: any): string {
+  try {
+    if (!dateValue) return 'Just now'
+    const date = new Date(dateValue)
+    if (!date || isNaN(date.getTime())) return 'Just now'
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+    if (seconds < 0) return 'Just now'
+    if (seconds < 60) return 'Just now'
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+    return `${Math.floor(seconds / 86400)}d ago`
+  } catch (e) {
+    return 'Just now'
+  }
+}
 
 interface RecentProjectsProps {
   projects: Project[]
   isLoading?: boolean
 }
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   pending: 'warning',
   processing: 'secondary',
   completed: 'success',
   failed: 'destructive'
-} as const
+}
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   pending: 'Pending',
   processing: 'Processing',
   completed: 'Completed',
   failed: 'Failed'
-} as const
+}
 
 export function RecentProjects({ projects, isLoading }: RecentProjectsProps) {
   if (isLoading) {
@@ -73,41 +89,39 @@ export function RecentProjects({ projects, isLoading }: RecentProjectsProps) {
       </div>
 
       <div className="space-y-3">
-        {projects.slice(0, 5).map((project) => (
+        {projects.slice(0, 5).map((project: any) => (
           <Link
             key={project.id}
             href={`/projects/${project.id}`}
             className="block group"
           >
             <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-[#2A2A3E] transition-colors">
-              {/* Project thumbnail or icon */}
               <div className="h-12 w-12 rounded-lg bg-[#E94560]/10 flex items-center justify-center flex-shrink-0">
                 <Play className="w-6 h-6 text-[#E94560]" />
               </div>
 
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-white truncate group-hover:text-[#E94560] transition-colors">
-                  {project.name}
+                  {project.name || project.title || 'Untitled'}
                 </h4>
                 <div className="flex items-center space-x-2 mt-1">
-                  <Badge variant={statusColors[project.status]} size="sm">
-                    {statusLabels[project.status]}
+                  <Badge variant={(statusColors[project.status] || 'secondary') as any}>
+                    {statusLabels[project.status] || project.status || 'Unknown'}
                   </Badge>
                   <span className="text-xs text-gray-400 flex items-center">
                     <Clock className="w-3 h-3 mr-1" />
-                    {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+                    {safeTimeAgo(project.createdAt || project.created_at)}
                   </span>
                 </div>
               </div>
 
-              {/* Processing progress */}
               {project.status === 'processing' && (
                 <div className="text-right">
-                  <div className="text-sm text-gray-400">{project.processingProgress}%</div>
+                  <div className="text-sm text-gray-400">{project.processingProgress || 0}%</div>
                   <div className="w-16 h-1 bg-[#2A2A3E] rounded-full mt-1">
                     <div
                       className="h-full bg-[#E94560] rounded-full transition-all duration-300"
-                      style={{ width: `${project.processingProgress}%` }}
+                      style={{ width: `${project.processingProgress || 0}%` }}
                     />
                   </div>
                 </div>

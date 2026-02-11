@@ -5,6 +5,17 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Download, Heart, MoreVertical, Play, Share, Star, TrendingUp } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
+function safeTimeAgo(dateValue: any): string {
+  try {
+    if (!dateValue) return 'Just now';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'Just now';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return 'Just now';
+  }
+}
+
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -303,7 +314,7 @@ export default function ClipDetailPage() {
                   <div className="text-center">
                     <div className="text-sm text-gray-400 mb-1">Created</div>
                     <div className="text-sm text-white">
-                      {formatDistanceToNow(new Date(clip.createdAt), { addSuffix: true })}
+                      {safeTimeAgo(clip.createdAt || (clip as any).created_at)}
                     </div>
                   </div>
                 </div>

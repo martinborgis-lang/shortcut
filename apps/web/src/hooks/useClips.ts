@@ -321,14 +321,25 @@ export function useDownloadProjectClips() {
  * Hook to toggle clip favorite status
  */
 export function useToggleFavorite() {
-  const updateClip = useUpdateClip()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: ({ clipId, currentValue }: { clipId: string; currentValue: boolean }) =>
-      updateClip.mutateAsync({
-        clipId,
-        data: { is_favorite: !currentValue }
-      }),
+      clipsApi.updateClip(clipId, { is_favorite: !currentValue }),
+    onSuccess: (updatedClip, { clipId }) => {
+      // Update the clip in cache
+      queryClient.setQueryData(['clips', clipId], (old: ClipDetailResponse | undefined) => {
+        if (old) {
+          return { ...old, ...updatedClip }
+        }
+        return old
+      })
+
+      // Invalidate clips list to refresh
+      queryClient.invalidateQueries({ queryKey: ['clips', 'list'] })
+
+      toast.success('Favorite status updated')
+    },
     onError: (error: Error) => {
       toast.error(`Failed to toggle favorite: ${error.message}`)
     }
@@ -339,14 +350,25 @@ export function useToggleFavorite() {
  * Hook to rate a clip (1-5 stars)
  */
 export function useRateClip() {
-  const updateClip = useUpdateClip()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: ({ clipId, rating }: { clipId: string; rating: number }) =>
-      updateClip.mutateAsync({
-        clipId,
-        data: { user_rating: rating }
-      }),
+      clipsApi.updateClip(clipId, { user_rating: rating }),
+    onSuccess: (updatedClip, { clipId }) => {
+      // Update the clip in cache
+      queryClient.setQueryData(['clips', clipId], (old: ClipDetailResponse | undefined) => {
+        if (old) {
+          return { ...old, ...updatedClip }
+        }
+        return old
+      })
+
+      // Invalidate clips list to refresh
+      queryClient.invalidateQueries({ queryKey: ['clips', 'list'] })
+
+      toast.success('Clip rated successfully')
+    },
     onError: (error: Error) => {
       toast.error(`Failed to rate clip: ${error.message}`)
     }

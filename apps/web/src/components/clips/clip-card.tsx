@@ -27,6 +27,17 @@ import { useDownloadClip, useUpdateClip } from '@/hooks'
 import { toast } from 'sonner'
 import type { Clip } from '../../../../shared/types'
 
+function safeTimeAgo(dateValue: any): string {
+  try {
+    if (!dateValue) return 'Just now';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'Just now';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return 'Just now';
+  }
+}
+
 interface ClipCardProps {
   clip: Clip
   onEdit?: (clip: Clip) => void
@@ -249,7 +260,7 @@ export function ClipCard({ clip, onEdit, onSchedule, showProject = false }: Clip
         <div className="flex items-center justify-between text-xs text-gray-400">
           <span className="flex items-center">
             <Clock className="w-3 h-3 mr-1" />
-            {formatDistanceToNow(new Date(clip.createdAt), { addSuffix: true })}
+            {safeTimeAgo(clip.createdAt || (clip as any).created_at)}
           </span>
 
           {/* Action Buttons */}

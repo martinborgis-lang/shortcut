@@ -22,6 +22,17 @@ import {
 import { Progress } from '@/components/ui/progress'
 import type { Project } from '../../../../shared/types'
 
+function safeTimeAgo(dateValue: any): string {
+  try {
+    if (!dateValue) return 'Just now';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'Just now';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return 'Just now';
+  }
+}
+
 interface ProjectCardProps {
   project: Project
   onEdit?: (project: Project) => void
@@ -112,7 +123,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
           </Badge>
           <span className="text-xs text-gray-400 flex items-center">
             <Clock className="w-3 h-3 mr-1" />
-            {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+            {safeTimeAgo(project.createdAt || (project as any).created_at)}
           </span>
         </div>
 

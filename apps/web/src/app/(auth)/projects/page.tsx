@@ -2,6 +2,18 @@
 
 import { useState, useMemo } from 'react'
 import { Plus, Grid, List } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+
+function safeTimeAgo(dateValue: any): string {
+  try {
+    if (!dateValue) return 'Just now';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'Just now';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return 'Just now';
+  }
+}
 import { Button } from '@/components/ui/button'
 import { ProjectCard } from '@/components/projects/project-card'
 import { ProjectFilters } from '@/components/projects/project-filters'
@@ -53,10 +65,14 @@ export default function ProjectsPage() {
           comparison = a.name.localeCompare(b.name)
           break
         case 'created':
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          const aCreated = new Date(a.createdAt || (a as any).created_at || 0).getTime();
+          const bCreated = new Date(b.createdAt || (b as any).created_at || 0).getTime();
+          comparison = isNaN(aCreated) ? 1 : isNaN(bCreated) ? -1 : aCreated - bCreated;
           break
         case 'updated':
-          comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+          const aUpdated = new Date(a.updatedAt || (a as any).updated_at || 0).getTime();
+          const bUpdated = new Date(b.updatedAt || (b as any).updated_at || 0).getTime();
+          comparison = isNaN(aUpdated) ? 1 : isNaN(bUpdated) ? -1 : aUpdated - bUpdated;
           break
       }
 

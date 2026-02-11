@@ -3,6 +3,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
+
+function safeTimeAgo(dateValue: any): string {
+  try {
+    if (!dateValue) return 'Just now';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'Just now';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return 'Just now';
+  }
+}
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -105,7 +116,9 @@ export default function ProjectDetailPage() {
         return b.duration - a.duration
       case 'created':
       default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        const aTime = new Date(a.createdAt || (a as any).created_at || 0).getTime();
+        const bTime = new Date(b.createdAt || (b as any).created_at || 0).getTime();
+        return isNaN(bTime) ? -1 : isNaN(aTime) ? 1 : bTime - aTime
     }
   })
 
@@ -135,7 +148,7 @@ export default function ProjectDetailPage() {
             <div className="flex items-center space-x-4 text-sm text-gray-400">
               <span className="flex items-center">
                 <Clock className="w-4 h-4 mr-1" />
-                {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
+                {safeTimeAgo(project.createdAt || (project as any).created_at)}
               </span>
               {project.originalVideoDuration && (
                 <span className="flex items-center">

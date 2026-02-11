@@ -6,6 +6,17 @@ import { Badge } from '@/components/ui/badge'
 import { ExternalLink, Play, Clock, TrendingUp } from 'lucide-react'
 import type { Clip } from '../../../../shared/types'
 
+function safeTimeAgo(dateValue: any): string {
+  try {
+    if (!dateValue) return 'Just now';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'Just now';
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch {
+    return 'Just now';
+  }
+}
+
 interface RecentClipsProps {
   clips: Clip[]
   isLoading?: boolean
@@ -95,7 +106,7 @@ export function RecentClips({ clips, isLoading }: RecentClipsProps) {
                 <span className="text-xs text-gray-400">{Math.round(clip.duration)}s</span>
                 <span className="text-xs text-gray-400 flex items-center">
                   <Clock className="w-3 h-3 mr-1" />
-                  {formatDistanceToNow(new Date(clip.createdAt), { addSuffix: true })}
+                  {safeTimeAgo(clip.createdAt || (clip as any).created_at)}
                 </span>
               </div>
             </div>
