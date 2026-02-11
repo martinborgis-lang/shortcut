@@ -116,11 +116,13 @@ async def create_project(
         )
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         db.rollback()
         logger.error("Failed to create project", error=str(e), url=request.url, user_id=str(current_user.id))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create project. Please try again."
+            detail=f"Failed to create project: {str(e)}"
         )
 
 

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,12 +28,17 @@ import type { Clip } from '../../../../shared/types'
 
 function safeTimeAgo(dateValue: any): string {
   try {
-    if (!dateValue) return 'Just now';
-    const date = new Date(dateValue);
-    if (isNaN(date.getTime())) return 'Just now';
-    return formatDistanceToNow(date, { addSuffix: true });
-  } catch {
-    return 'Just now';
+    if (!dateValue) return 'Just now'
+    const date = new Date(dateValue)
+    if (!date || isNaN(date.getTime())) return 'Just now'
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+    if (seconds < 0) return 'Just now'
+    if (seconds < 60) return 'Just now'
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+    return `${Math.floor(seconds / 86400)}d ago`
+  } catch (e) {
+    return 'Just now'
   }
 }
 

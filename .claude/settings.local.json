@@ -44,7 +44,10 @@
       "Bash(.venvScriptsactivate)",
       "Bash(.venv/Scripts/activate)",
       "Bash(powershell:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
