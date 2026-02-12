@@ -47,7 +47,8 @@
       "Bash(npm run lint)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(docker exec:*)"
     ],
     "deny": [],
     "ask": []
