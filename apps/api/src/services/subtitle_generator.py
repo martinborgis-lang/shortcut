@@ -161,11 +161,14 @@ class SubtitleGeneratorService:
             output_path = tempfile.NamedTemporaryFile(suffix="_subtitled.mp4", delete=False).name
 
         try:
+            # Escape ASS path for FFmpeg filter on Windows
+            ass_path_escaped = subtitle_path.replace('\\', '/').replace(':', '\\:')
+
             # FFmpeg command to burn subtitles
             cmd = [
                 "ffmpeg",
                 "-i", video_path,
-                "-vf", f"ass={subtitle_path}",
+                "-vf", f"ass={ass_path_escaped}",
                 "-c:a", "copy",  # Copy audio without re-encoding
                 "-y",
                 output_path
