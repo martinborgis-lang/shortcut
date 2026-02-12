@@ -52,6 +52,16 @@ app.add_middleware(
 # Rate limiting is now handled via dependencies in endpoints
 # This ensures proper user authentication before rate limiting
 
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(rest_of_path: str):
+    from fastapi.responses import JSONResponse
+    return JSONResponse(content={}, headers={
+        "Access-Control-Allow-Origin": "http://localhost:3002",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true",
+    })
+
 
 @app.get("/health")
 async def health_check():
