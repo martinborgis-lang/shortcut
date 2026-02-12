@@ -166,6 +166,13 @@ Pour chaque segment, retourne UNIQUEMENT un JSON array :
   }}
 ]
 
+🔥 RÈGLES OBLIGATOIRES DE DURÉE 🔥
+- CHAQUE segment DOIT durer entre 30 et 90 secondes (PAS moins de 30s !)
+- Ne sélectionne PAS une seule phrase ou punchline isolée
+- Chaque segment doit être un BLOC NARRATIF COMPLET avec introduction, développement et conclusion
+- Si un moment viral est une phrase courte, ÉTENDS le segment pour inclure le contexte avant et après (setup + punchline + réaction)
+- Exemple : Si la punchline est à 50s, commence le segment à 25s et finis à 65s pour avoir 40s complets
+
 Critères de viralité (par ordre d'importance) :
 1. Punchline / révélation inattendue
 2. Émotion forte (rire, choc, inspiration)
@@ -255,9 +262,14 @@ Retourne UNIQUEMENT le JSON, aucun texte avant ou après."""
                         logger.warning("Invalid segment timing", segment=segment, duration=duration)
                         continue
 
-                    if not (30 <= end_time - start_time <= 90):
-                        logger.warning("Segment duration outside 30-90s range", segment=segment)
-                        # Continue anyway, we can adjust duration later
+                    segment_duration = end_time - start_time
+                    if segment_duration < 30:
+                        logger.warning("Segment too short, skipping", segment=segment, duration=segment_duration)
+                        continue
+                    if segment_duration > 90:
+                        logger.warning("Segment too long, truncating", segment=segment, duration=segment_duration)
+                        # Truncate to 90 seconds
+                        end_time = start_time + 90
 
                     if not (0 <= virality_score <= 100):
                         logger.warning("Invalid virality score", segment=segment)
