@@ -85,7 +85,7 @@ class VideoProcessorService:
                 cmd=" ".join(cmd)
             )
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
 
             logger.info("Video clip cut successfully", output_path=output_path)
             return output_path
@@ -162,7 +162,7 @@ class VideoProcessorService:
                 video_path
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
             import json
             data = json.loads(result.stdout)
 
@@ -348,7 +348,7 @@ class VideoProcessorService:
                 cmd=" ".join(cmd)
             )
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
 
             logger.info("Video cropped successfully", output_path=output_path)
             return output_path

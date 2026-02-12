@@ -81,7 +81,7 @@ class TranscriptionService:
             ]
 
             logger.info("Extracting audio", cmd=" ".join(cmd))
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
 
             logger.info("Audio extraction completed", audio_path=audio_path)
             return audio_path
@@ -104,7 +104,7 @@ class TranscriptionService:
             # Deepgram parameters for optimal transcription
             params = {
                 "model": "nova-2",  # Latest model
-                "language": "en",   # English
+                "detect_language": "true",  # Auto-detect language
                 "smart_format": "true",  # Smart formatting (punctuation, capitalization)
                 "punctuate": "true",  # Add punctuation
                 "paragraphs": "true",  # Paragraph detection
