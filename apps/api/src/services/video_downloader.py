@@ -77,8 +77,17 @@ class VideoDownloaderService:
             "--no-playlist",
             "--embed-thumbnail",
             "--add-metadata",
-            url
+            "--js-runtimes", "node",
+            "--merge-output-format", "mp4"
         ]
+
+        # Add cookies support if cookies.txt exists
+        cookies_path = os.path.join(os.path.dirname(__file__), '..', '..', 'cookies.txt')
+        if os.path.exists(cookies_path):
+            cmd.extend(['--cookies', os.path.abspath(cookies_path)])
+
+        # Add URL at the end
+        cmd.append(url)
 
         logger.info("Running yt-dlp", cmd=" ".join(cmd))
         result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
