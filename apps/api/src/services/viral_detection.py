@@ -1,6 +1,8 @@
 import os
 import json
 import structlog
+import re
+import ast
 from typing import Dict, Any, List
 import google.generativeai as genai
 
@@ -20,7 +22,7 @@ class ViralDetectionService:
         self.model = None
         if not self._is_mock_mode() and settings.GOOGLE_API_KEY:
             genai.configure(api_key=settings.GOOGLE_API_KEY)
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            self.model = genai.GenerativeModel('gemini-2.0-flash')
 
     def _is_mock_mode(self) -> bool:
         """Check if running in mock mode for development"""
@@ -181,8 +183,9 @@ Retourne UNIQUEMENT le JSON, aucun texte avant ou après."""
             response = self.model.generate_content(
                 prompt,
                 generation_config=genai.types.GenerationConfig(
-                    max_output_tokens=4000,
-                    temperature=0.3,  # Lower temperature for more consistent JSON output
+                    temperature=0.3,
+                    max_output_tokens=4096,
+                    response_mime_type="application/json",
                 )
             )
 
@@ -213,7 +216,24 @@ Retourne UNIQUEMENT le JSON, aucun texte avant ou après."""
                 raise ValueError("No JSON array found in Gemini response")
 
             json_text = response[start_idx:end_idx + 1]
-            segments = json.loads(json_text)
+
+            # Try to parse JSON normally first
+            try:
+                segments = json.loads(json_text)
+            except json.JSONDecodeError:
+                # Fallback: try to repair JSON
+                try:
+                    # Fix common JSON issues: unescaped quotes in strings
+                    repaired_json = self._repair_json(json_text)
+                    segments = json.loads(repaired_json)
+                except json.JSONDecodeError:
+                    # Last resort: try ast.literal_eval or manual extraction
+                    try:
+                        segments = ast.literal_eval(json_text)
+                    except (ValueError, SyntaxError):
+                        segments = self._extract_segments_manually(json_text)
+                        if not segments:
+                            raise ValueError("Failed to parse JSON with all fallback methods")
 
             # Validate and sanitize each segment
             validated_segments = []
@@ -364,3 +384,54 @@ Retourne UNIQUEMENT le JSON, aucun texte avant ou après."""
 
         # Return only requested number of clips
         return mock_segments[:max_clips]
+
+    def _repair_json(self, json_text: str) -> str:
+        """Attempt to repair malformed JSON"""
+        try:
+            # Fix unescaped quotes in string values
+            # This regex finds strings and escapes any unescaped quotes inside them
+            def fix_quotes(match):
+                string_content = match.group(1)
+                # Escape any unescaped quotes
+                fixed_content = re.sub(r'(?<!\\)"', r'\\"', string_content)
+                return f'"{fixed_content}"'
+
+            # Pattern to match string values (between quotes)
+            pattern = r'"([^"\\]*(?:\\.[^"\\]*)*)"'
+            repaired = re.sub(pattern, fix_quotes, json_text)
+
+            return repaired
+        except Exception:
+            return json_text
+
+    def _extract_segments_manually(self, text: str) -> List[Dict[str, Any]]:
+        """Extract segments manually when JSON parsing fails"""
+        try:
+            segments = []
+
+            # Look for start_time patterns
+            start_times = re.findall(r'"start_time":\s*([0-9.]+)', text)
+            end_times = re.findall(r'"end_time":\s*([0-9.]+)', text)
+            titles = re.findall(r'"title":\s*"([^"]*)"', text)
+            scores = re.findall(r'"virality_score":\s*([0-9]+)', text)
+            reasons = re.findall(r'"reason":\s*"([^"]*)"', text)
+            hooks = re.findall(r'"hook":\s*"([^"]*)"', text)
+
+            # Create segments from extracted data
+            min_length = min(len(start_times), len(end_times), len(titles), len(scores), len(reasons), len(hooks))
+
+            for i in range(min_length):
+                segment = {
+                    "start_time": float(start_times[i]),
+                    "end_time": float(end_times[i]),
+                    "title": titles[i],
+                    "virality_score": int(scores[i]),
+                    "reason": reasons[i],
+                    "hook": hooks[i]
+                }
+                segments.append(segment)
+
+            return segments
+
+        except Exception:
+            return []

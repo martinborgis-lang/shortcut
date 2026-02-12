@@ -173,7 +173,7 @@ class ApiClient {
     const formData = new FormData()
     formData.append('file', file)
 
-    return this.request<{ upload_url: string; project_id: string }>('/api/upload/video', {
+    return this.request<{ upload_url: string; project_id: string }>('/api/upload/video/', {
       method: 'POST',
       headers: {}, // Remove Content-Type to let browser set it for FormData
       body: formData,
@@ -187,9 +187,9 @@ class ApiClient {
     }
     console.log('processVideoFromUrl called with payload:', payload)
     console.log('API Base URL:', this.baseUrl)
-    console.log('Full URL:', `${this.baseUrl}/api/projects`)
+    console.log('Full URL:', `${this.baseUrl}/api/projects/`)
 
-    const result = await this.request<Project>('/api/projects', {
+    const result = await this.request<Project>('/api/projects/', {
       method: 'POST',
       body: JSON.stringify(payload),
     }, token)
