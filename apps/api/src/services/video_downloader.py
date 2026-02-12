@@ -81,7 +81,7 @@ class VideoDownloaderService:
         ]
 
         logger.info("Running yt-dlp", cmd=" ".join(cmd))
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
 
         # Find the downloaded file
         downloaded_files = list(self.uploads_dir.glob(f"video_{timestamp}_{unique_id}.*"))
@@ -102,7 +102,7 @@ class VideoDownloaderService:
                 video_path
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
             probe_data = json.loads(result.stdout)
 
             # Extract relevant metadata
