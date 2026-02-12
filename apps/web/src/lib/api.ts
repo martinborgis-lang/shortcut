@@ -87,77 +87,77 @@ class ApiClient {
 
   // User endpoints
   async getCurrentUser(token: string): Promise<User> {
-    return this.request<User>('/api/users/me', {}, token)
+    return this.request<User>('/api/users/me/', {}, token)
   }
 
   async getUserUsage(token: string): Promise<UsageStats> {
-    return this.request<UsageStats>('/api/users/me/usage', {}, token)
+    return this.request<UsageStats>('/api/users/me/usage/', {}, token)
   }
 
   async resetMonthlyUsage(token: string): Promise<{ status: string; message: string; monthly_minutes_used: number }> {
-    return this.request('/api/users/me/reset-usage', {
+    return this.request('/api/users/me/reset-usage/', {
       method: 'POST',
     }, token)
   }
 
   // Dashboard
   async getDashboardStats(token: string): Promise<DashboardStats> {
-    return this.request<DashboardStats>('/api/dashboard/stats', {}, token)
+    return this.request<DashboardStats>('/api/dashboard/stats/', {}, token)
   }
 
   // Projects
   async getProjects(token?: string): Promise<Project[]> {
-    return this.request<Project[]>('/api/projects', {}, token)
+    return this.request<Project[]>('/api/projects/', {}, token)
   }
 
   async getProject(projectId: string, token?: string): Promise<Project> {
-    return this.request<Project>(`/api/projects/${projectId}`, {}, token)
+    return this.request<Project>(`/api/projects/${projectId}/`, {}, token)
   }
 
   async createProject(data: CreateProjectRequest, token?: string): Promise<Project> {
-    return this.request<Project>('/api/projects', {
+    return this.request<Project>('/api/projects/', {
       method: 'POST',
       body: JSON.stringify(data),
     }, token)
   }
 
   async updateProject(projectId: string, data: Partial<Project>, token?: string): Promise<Project> {
-    return this.request<Project>(`/api/projects/${projectId}`, {
+    return this.request<Project>(`/api/projects/${projectId}/`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }, token)
   }
 
   async deleteProject(projectId: string, token?: string): Promise<void> {
-    return this.request<void>(`/api/projects/${projectId}`, {
+    return this.request<void>(`/api/projects/${projectId}/`, {
       method: 'DELETE',
     }, token)
   }
 
   // Clips
   async getClips(projectId: string, token?: string): Promise<Clip[]> {
-    return this.request<Clip[]>(`/api/projects/${projectId}/clips`, {}, token)
+    return this.request<Clip[]>(`/api/projects/${projectId}/clips/`, {}, token)
   }
 
   async getClip(clipId: string, token?: string): Promise<Clip> {
-    return this.request<Clip>(`/api/clips/${clipId}`, {}, token)
+    return this.request<Clip>(`/api/clips/${clipId}/`, {}, token)
   }
 
   async updateClip(clipId: string, data: Partial<Clip>, token?: string): Promise<Clip> {
-    return this.request<Clip>(`/api/clips/${clipId}`, {
+    return this.request<Clip>(`/api/clips/${clipId}/`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }, token)
   }
 
   async deleteClip(clipId: string, token?: string): Promise<void> {
-    return this.request<void>(`/api/clips/${clipId}`, {
+    return this.request<void>(`/api/clips/${clipId}/`, {
       method: 'DELETE',
     }, token)
   }
 
   async downloadClip(clipId: string, token?: string): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/api/clips/${clipId}/download`, {
+    const response = await fetch(`${this.baseUrl}/api/clips/${clipId}/download/`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
 
